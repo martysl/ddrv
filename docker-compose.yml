@@ -1,0 +1,33 @@
+version: '3.8'
+services:
+  pgadmin:
+    container_name: pgadmin4_container
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${ps_user}@${ps_name}.docker
+      PGADMIN_DEFAULT_PASSWORD: ${ps_pass}
+    ports:
+      - "${[pg_admin}:80"
+    links:
+        - '${ps_name}'
+  ${ps_name}:
+    container_name: ${ps_name}
+    image: postgres:alpine
+    volumes:
+      - ./db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${ps_user}
+      POSTGRES_DB: ${ps_db}
+      POSTGRES_PASSWORD: ${ps_pass}
+  drive_marty:
+     container_name: drive_social
+     build: .
+     command: --db-url=postgres://${ps_user}:${ps_pass}@${ps_name}:5432/${ps_db}?sslmode=disable --webhooks=h${ddrv_hook1},${ddrv_hook2}  --username="${ddrc_login}" --password="${ddrv_pass}" --ftp-port-range="${ftp_range}" --ftp-addr=":${ftp_port}" --http-addr=":${http_port}" --wd-addr=":${wd_port}"
+     ports:
+        - '${ftp_port}:${ftp_port}'
+        - '${http_port}:${http_port}'
+        - '${wd_port}:${wd_port}'
+        - '${ftp_range}:${ftp_range}'
+     links:
+        - '${ps_name}'
